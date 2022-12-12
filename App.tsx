@@ -1,7 +1,14 @@
 import axios from "axios";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Button,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function App() {
   const [text, setText] = useState<string>("");
@@ -18,13 +25,18 @@ export default function App() {
     ddd: string;
     siafi: string;
   }>();
+  const [loading, setloading] = useState<boolean>(false);
 
   const getCEP = (cep: string) => {
+    setloading(true);
     try {
-      axios.get(`https://viacep.com.br/ws/${cep}/json/`).then((res) => {
-        const data = res.data;
-        setCEP(data);
-      });
+      axios
+        .get(`https://viacep.com.br/ws/${cep}/json/`)
+        .then((res) => {
+          const data = res.data;
+          setCEP(data);
+        })
+        .finally(() => setloading(false));
       setError(false);
     } catch (error) {
       console.error(error);
@@ -48,15 +60,21 @@ export default function App() {
           text.length == 8 ? getCEP(text) : setError(true);
         }}
       />
-      <View style={styles.boxcep}>
-        <Text>{cep?.cep}</Text>
-        <Text>{cep?.logradouro}</Text>
-        <Text>{cep?.bairro}</Text>
-        <Text>{cep?.localidade}</Text>
-        <Text>{cep?.uf}</Text>
-        <Text>{cep?.ibge}</Text>
-        <Text>{cep?.ddd}</Text>
-      </View>
+      {loading ? (
+        <View style={styles.activity}>
+          <ActivityIndicator size="large" color="#1251C7" />
+        </View>
+      ) : (
+        <View style={styles.boxcep}>
+          <Text>{cep?.cep}</Text>
+          <Text>{cep?.logradouro}</Text>
+          <Text>{cep?.bairro}</Text>
+          <Text>{cep?.localidade}</Text>
+          <Text>{cep?.uf}</Text>
+          <Text>{cep?.ibge}</Text>
+          <Text>{cep?.ddd}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -72,12 +90,17 @@ const styles = StyleSheet.create({
     margin: 12,
     borderWidth: 1,
     padding: 10,
-    borderRadius: 6,
+    borderRadius: 8,
   },
   boxcep: {
     marginTop: 40,
     backgroundColor: "#c2c1c1",
     padding: 16,
     borderRadius: 6,
+  },
+  activity: {
+    alignContent: "center",
+    alignItems: "center",
+    flex: 1,
   },
 });
